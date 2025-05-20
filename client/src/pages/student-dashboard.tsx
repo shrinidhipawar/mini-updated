@@ -7,51 +7,149 @@ import CountdownTimer from "@/components/countdown-timer";
 import AntiCheat from "@/components/anti-cheat";
 import ScreenCapture from "@/components/screen-capture";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Loader2 } from "lucide-react";
+
+interface Grade {
+  id: number;
+  submissionId: number;
+  score: number;
+  feedback: string;
+  timestamp: string;
+  subject: string;
+}
 
 export default function StudentDashboard() {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [subject, setSubject] = useState("javascript");
-  const [code, setCode] = useState<string>(`function reverseString(str) {\n  // Your code here\n  \n  return str;\n}\n\n// Example test case\nconsole.log(reverseString("hello")); // should output: "olleh"`);
+  const [code, setCode] = useState<string>(`/**
+ * Write a function to check if a number is prime.
+ * Return true if the number is prime, otherwise return false.
+ */
+function isPrime(num) {
+  // Your code here
+  
+  return false;
+}
+
+// Example test cases
+console.log(isPrime(7)); // should return: true
+console.log(isPrime(10)); // should return: false
+console.log(isPrime(2)); // should return: true
+console.log(isPrime(1)); // should return: false`);
   const [testResults, setTestResults] = useState<{ passed: boolean; message: string }[]>([]);
   
   // Simulate test cases for different languages
-  const testCases: Record<string, Array<{ input: string; expected: string }>> = {
+  const testCases: Record<string, Array<{ input: number; expected: boolean }>> = {
     javascript: [
-      { input: "hello", expected: "olleh" },
-      { input: "world", expected: "dlrow" },
-      { input: "", expected: "" },
-      { input: "a", expected: "a" }
+      { input: 7, expected: true },
+      { input: 10, expected: false },
+      { input: 2, expected: true },
+      { input: 1, expected: false },
+      { input: 13, expected: true },
+      { input: 4, expected: false }
     ],
     python: [
-      { input: "hello", expected: "olleh" },
-      { input: "world", expected: "dlrow" },
-      { input: "", expected: "" },
-      { input: "a", expected: "a" }
+      { input: 7, expected: true },
+      { input: 10, expected: false },
+      { input: 2, expected: true },
+      { input: 1, expected: false }
     ],
     java: [
-      { input: "hello", expected: "olleh" },
-      { input: "world", expected: "dlrow" },
-      { input: "", expected: "" },
-      { input: "a", expected: "a" }
+      { input: 7, expected: true },
+      { input: 10, expected: false },
+      { input: 2, expected: true },
+      { input: 1, expected: false }
     ],
     cpp: [
-      { input: "hello", expected: "olleh" },
-      { input: "world", expected: "dlrow" },
-      { input: "", expected: "" },
-      { input: "a", expected: "a" }
+      { input: 7, expected: true },
+      { input: 10, expected: false },
+      { input: 2, expected: true },
+      { input: 1, expected: false }
     ]
   };
   
   // Language-specific template code
   const templates: Record<string, string> = {
-    javascript: `function reverseString(str) {\n  // Your code here\n  \n  return str;\n}\n\n// Example test case\nconsole.log(reverseString("hello")); // should output: "olleh"`,
-    python: `def reverse_string(s):\n    # Your code here\n    \n    return s\n\n# Example test case\nprint(reverse_string("hello"))  # should output: "olleh"`,
-    java: `public class Solution {\n    public static String reverseString(String str) {\n        // Your code here\n        \n        return str;\n    }\n    \n    public static void main(String[] args) {\n        // Example test case\n        System.out.println(reverseString("hello")); // should output: "olleh"\n    }\n}`,
-    cpp: `#include <iostream>\n#include <string>\n\nstd::string reverseString(std::string str) {\n    // Your code here\n    \n    return str;\n}\n\nint main() {\n    // Example test case\n    std::cout << reverseString("hello") << std::endl; // should output: "olleh"\n    return 0;\n}`
+    javascript: `/**
+ * Write a function to check if a number is prime.
+ * Return true if the number is prime, otherwise return false.
+ */
+function isPrime(num) {
+  // Your code here
+  
+  return false;
+}
+
+// Example test cases
+console.log(isPrime(7)); // should return: true
+console.log(isPrime(10)); // should return: false
+console.log(isPrime(2)); // should return: true
+console.log(isPrime(1)); // should return: false`,
+    python: `# Write a function to check if a number is prime.
+# Return True if the number is prime, otherwise return False.
+def is_prime(num):
+    # Your code here
+    
+    return False
+
+# Example test cases
+print(is_prime(7))  # should return: True
+print(is_prime(10))  # should return: False
+print(is_prime(2))  # should return: True
+print(is_prime(1))  # should return: False`,
+    java: `/**
+ * Write a function to check if a number is prime.
+ * Return true if the number is prime, otherwise return false.
+ */
+public class Solution {
+    public static boolean isPrime(int num) {
+        // Your code here
+        
+        return false;
+    }
+    
+    public static void main(String[] args) {
+        // Example test cases
+        System.out.println(isPrime(7));  // should return: true
+        System.out.println(isPrime(10)); // should return: false
+        System.out.println(isPrime(2));  // should return: true
+        System.out.println(isPrime(1));  // should return: false
+    }
+}`,
+    cpp: `#include <iostream>
+
+/**
+ * Write a function to check if a number is prime.
+ * Return true if the number is prime, otherwise return false.
+ */
+bool isPrime(int num) {
+    // Your code here
+    
+    return false;
+}
+
+int main() {
+    // Example test cases
+    std::cout << std::boolalpha;
+    std::cout << isPrime(7) << std::endl;  // should return: true
+    std::cout << isPrime(10) << std::endl; // should return: false
+    std::cout << isPrime(2) << std::endl;  // should return: true
+    std::cout << isPrime(1) << std::endl;  // should return: false
+    return 0;
+}`
   };
+  
+  // Fetch student grades
+  const { data: grades = [], isLoading: isLoadingGrades } = useQuery<Grade[]>({
+    queryKey: ["/api/student/grades"],
+    enabled: !!user
+  });
   
   // Update code when subject changes
   useEffect(() => {
@@ -68,7 +166,7 @@ export default function StudentDashboard() {
     // Simulate test case evaluation based on language
     for (const test of testCases[subject]) {
       try {
-        let result: string;
+        let result: boolean;
         
         if (subject === 'javascript') {
           // Extremely simplified eval for demo - never do this in production!
@@ -78,15 +176,15 @@ export default function StudentDashboard() {
           result = func(test.input);
         } else {
           // For other languages, we'd send to server - simulate for now
-          result = 'Simulation: ' + test.input;
+          result = test.input % 2 !== 0 && test.input > 1; // Simple simulation
         }
         
         const passed = result === test.expected;
         results.push({
           passed,
           message: passed 
-            ? `Test passed: reverseString("${test.input}") returned "${result}"`
-            : `Test failed: reverseString("${test.input}") - Expected: "${test.expected}", Received: "${result || 'undefined'}"`
+            ? `Test passed: isPrime(${test.input}) returned ${result}`
+            : `Test failed: isPrime(${test.input}) - Expected: ${test.expected}, Received: ${result}`
         });
       } catch (err) {
         results.push({
@@ -118,6 +216,8 @@ export default function StudentDashboard() {
         title: "Code submitted successfully",
         description: "Your submission has been recorded",
       });
+      // Invalidate the grades query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ["/api/student/grades"] });
     },
     onError: (error: Error) => {
       toast({
@@ -172,7 +272,7 @@ export default function StudentDashboard() {
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F9F8F6]">
       {/* Anti-cheating components */}
       <AntiCheat userId={user?.id} />
       <ScreenCapture userId={user?.id} />
@@ -181,15 +281,15 @@ export default function StudentDashboard() {
       <header className="bg-white shadow-sm z-10">
         <div className="flex justify-between items-center px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-900">Coding Lab</h1>
+            <h1 className="text-xl font-serif font-medium text-[#1F2937]">College Coding Lab</h1>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium text-gray-700">{user?.email}</span>
+            <span className="text-sm font-medium text-[#1F2937]">{user?.email}</span>
             <Button 
-              variant="ghost" 
+              variant="outline" 
               onClick={() => logoutMutation.mutate()}
               disabled={logoutMutation.isPending}
-              className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
+              className="text-sm text-[#1F2937] hover:bg-[#F9F8F6] border-[#E5E7EB] rounded-lg"
             >
               {logoutMutation.isPending ? "Logging out..." : "Logout"}
             </Button>
@@ -197,75 +297,73 @@ export default function StudentDashboard() {
         </div>
       </header>
       
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* Sidebar */}
-        <aside className="bg-gray-800 text-white md:w-64 md:flex-shrink-0">
-          <div className="p-4">
-            <div className="py-4">
-              <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Assignment Details</h2>
+      <div className="flex-1 container max-w-6xl mx-auto px-4 py-8">
+        <Tabs defaultValue="assignment" className="space-y-6">
+          <TabsList className="bg-white border border-[#E5E7EB] p-1 rounded-xl">
+            <TabsTrigger 
+              value="assignment" 
+              className="rounded-lg px-4 py-2 data-[state=active]:bg-[#0F172A] data-[state=active]:text-white"
+            >
+              Coding Assignment
+            </TabsTrigger>
+            <TabsTrigger 
+              value="scores" 
+              className="rounded-lg px-4 py-2 data-[state=active]:bg-[#0F172A] data-[state=active]:text-white"
+            >
+              Past Scores
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Assignment Tab */}
+          <TabsContent value="assignment" className="space-y-6">
+            <Card className="bg-white shadow-sm rounded-2xl border-[#E5E7EB] overflow-hidden">
+              <CardHeader className="bg-[#0F172A] text-white pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-xl font-serif">Prime Number Challenge</CardTitle>
+                    <p className="text-slate-300 mt-1 text-sm">Write a function to check if a number is prime.</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-slate-300">Time Remaining</p>
+                    <CountdownTimer initialTime={90 * 60} className="text-lg font-mono text-white" />
+                  </div>
+                </div>
+              </CardHeader>
               
-              <div className="mt-4 space-y-4">
-                {/* Subject selector */}
-                <div>
-                  <label htmlFor="subject" className="block text-xs font-medium text-gray-300">Subject</label>
-                  <Select value={subject} onValueChange={setSubject}>
-                    <SelectTrigger className="mt-1 w-full border-gray-600 bg-gray-700 text-white">
-                      <SelectValue placeholder="Select a subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="javascript">JavaScript</SelectItem>
-                      <SelectItem value="python">Python</SelectItem>
-                      <SelectItem value="java">Java</SelectItem>
-                      <SelectItem value="cpp">C++</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {/* Timer */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-300">Remaining Time</label>
-                  <CountdownTimer initialTime={90 * 60} className="mt-1 text-2xl font-mono font-semibold text-white" />
-                </div>
-                
-                {/* Instructions */}
-                <div>
-                  <h3 className="text-xs font-medium text-gray-300">Instructions</h3>
-                  <div className="mt-1 p-3 bg-gray-700 rounded-md text-sm text-gray-200">
-                    <p>1. Write a function that reverses a string.</p>
-                    <p className="mt-2">2. The function should handle empty strings and single characters.</p>
-                    <p className="mt-2">3. Use the provided test cases to verify your solution.</p>
+              <CardContent className="p-6 space-y-6">
+                <div className="flex justify-between items-center">
+                  <div className="w-64">
+                    <label htmlFor="subject" className="block text-sm font-medium text-[#1F2937]">Select Programming Language</label>
+                    <div className="mt-1">
+                      <Select value={subject} onValueChange={setSubject}>
+                        <SelectTrigger className="w-full border-[#E5E7EB] bg-white text-[#1F2937] rounded-lg">
+                          <SelectValue placeholder="Select a subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="javascript">JavaScript</SelectItem>
+                          <SelectItem value="python">Python</SelectItem>
+                          <SelectItem value="java">Java</SelectItem>
+                          <SelectItem value="cpp">C++</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Anti-cheat warning */}
+                  <div className="p-3 bg-red-50 text-red-800 rounded-lg text-xs border border-red-200 w-72">
+                    <p className="font-medium">⚠️ Anti-Cheating Measures Active:</p>
+                    <ul className="mt-1 list-disc list-inside">
+                      <li>Tab switching is detected</li>
+                      <li>Copy-paste is disabled</li>
+                      <li>Your screen is monitored</li>
+                    </ul>
                   </div>
                 </div>
                 
-                {/* Anti-cheat warning */}
-                <div className="p-3 bg-red-800 bg-opacity-50 rounded-md text-xs">
-                  <p className="font-medium text-red-200">⚠️ Anti-Cheating Measures Active:</p>
-                  <ul className="mt-1 text-red-200 list-disc list-inside">
-                    <li>Tab switching is detected</li>
-                    <li>Copy-paste is disabled</li>
-                    <li>Screen captures are logged</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
-        
-        {/* Main content */}
-        <main className="flex-1 overflow-auto bg-white">
-          <div className="py-6 px-4 sm:px-6 lg:px-8">
-            <div className="pb-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Coding Assignment</h2>
-              <p className="mt-1 text-sm text-gray-500">Use the editor below to write and test your code. Remember to click Submit when you're done.</p>
-            </div>
-            
-            {/* Editor */}
-            <div className="mt-6">
-              <div className="flex flex-col space-y-4">
-                <div className="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
-                  <div className="lg:flex-1">
-                    <label htmlFor="code-editor" className="block text-sm font-medium text-gray-700">Code Editor</label>
-                    <div id="editor" className="mt-1 rounded-md border border-gray-300 h-[500px]">
+                {/* Editor Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <div id="editor" className="border border-[#E5E7EB] rounded-lg h-[500px] overflow-hidden shadow-sm">
                       <MonacoEditor
                         language={subject}
                         value={code}
@@ -280,51 +378,53 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                   
-                  <div className="lg:w-1/3">
-                    <label className="block text-sm font-medium text-gray-700">Test Results</label>
-                    <div className="mt-1 bg-gray-100 rounded-md h-[500px] p-4 overflow-auto border border-gray-300">
-                      {testResults.length > 0 ? (
-                        <div className="text-sm font-mono space-y-3">
-                          {testResults.map((result, index) => (
-                            <div key={index} className="flex items-start">
-                              <div className="flex-shrink-0 pt-0.5">
-                                <span className={`inline-flex items-center justify-center h-6 w-6 rounded-full ${result.passed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                  {result.passed ? '✓' : '✕'}
-                                </span>
+                  <div className="lg:col-span-1">
+                    <div className="h-full flex flex-col">
+                      <h3 className="text-sm font-medium text-[#1F2937] mb-2">Test Results</h3>
+                      <div className="flex-1 bg-white rounded-lg p-4 overflow-auto border border-[#E5E7EB] h-[458px]">
+                        {testResults.length > 0 ? (
+                          <div className="text-sm font-mono space-y-3">
+                            {testResults.map((result, index) => (
+                              <div key={index} className="flex items-start">
+                                <div className="flex-shrink-0 pt-0.5">
+                                  <span className={`inline-flex items-center justify-center h-6 w-6 rounded-full ${result.passed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                    {result.passed ? '✓' : '✕'}
+                                  </span>
+                                </div>
+                                <div className="ml-3">
+                                  <p className="text-[#1F2937]">
+                                    <span className="font-medium">{result.passed ? 'Pass:' : 'Fail:'}</span>
+                                    {' ' + result.message.split(' - ')[0]}
+                                  </p>
+                                  {!result.passed && result.message.includes('Expected:') && (
+                                    <p className="text-gray-500">{result.message.split(' - ')[1]}</p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="ml-3">
-                                <p className="text-gray-900">
-                                  <span className="font-medium">{result.passed ? 'Test passed:' : 'Test failed:'}</span>
-                                  {' ' + result.message.split(' - ')[0]}
-                                </p>
-                                {!result.passed && result.message.includes('Expected:') && (
-                                  <p className="text-gray-500">{result.message.split(' - ')[1]}</p>
-                                )}
-                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-center text-[#1F2937] opacity-50">
+                            <div className="mb-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                              </svg>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 pt-0.5">
-                            <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-gray-100 text-gray-600">
-                              ℹ️
-                            </span>
+                            <p className="text-sm font-medium">No Test Results Yet</p>
+                            <p className="text-xs mt-1">Click "Run Code" to test your solution</p>
                           </div>
-                          <div className="ml-3">
-                            <p className="text-gray-500">Run your code to see test results</p>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
                 
+                {/* Action Buttons */}
                 <div className="flex justify-between pt-4">
                   <Button 
                     variant="outline" 
                     onClick={handleRunCode}
-                    className="bg-primary-50 text-primary-dark hover:bg-primary-100"
+                    className="bg-white text-[#0F172A] hover:bg-[#F9F8F6] border-[#E5E7EB] rounded-lg px-6"
                   >
                     Run Code
                   </Button>
@@ -334,6 +434,7 @@ export default function StudentDashboard() {
                       variant="outline" 
                       onClick={handleScreenShare}
                       disabled={isScreenSharing}
+                      className="border-[#8C977A] text-[#8C977A] hover:bg-[#8C977A] hover:text-white rounded-lg"
                     >
                       {isScreenSharing ? "Screen Shared" : "Share Screen"}
                     </Button>
@@ -341,15 +442,68 @@ export default function StudentDashboard() {
                     <Button 
                       onClick={() => submitMutation.mutate()}
                       disabled={submitMutation.isPending}
+                      className="bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-lg px-6"
                     >
-                      {submitMutation.isPending ? "Submitting..." : "Submit Code"}
+                      {submitMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        "Submit Code"
+                      )}
                     </Button>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </main>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Past Scores Tab */}
+          <TabsContent value="scores">
+            <Card className="bg-white shadow-sm rounded-2xl border-[#E5E7EB]">
+              <CardHeader className="border-b border-[#E5E7EB]">
+                <CardTitle className="text-xl font-serif text-[#1F2937]">Your Performance History</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {isLoadingGrades ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#C9B88C]" />
+                  </div>
+                ) : grades.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-[#1F2937] opacity-60">You haven't submitted any code yet.</p>
+                    <p className="text-sm text-[#1F2937] opacity-60 mt-1">Complete coding challenges to see your scores here.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableCaption>A list of your recent submission scores</TableCaption>
+                    <TableHeader>
+                      <TableRow className="bg-[#F9F8F6]">
+                        <TableHead className="text-[#1F2937]">Subject</TableHead>
+                        <TableHead className="text-[#1F2937]">Score</TableHead>
+                        <TableHead className="text-[#1F2937]">Feedback</TableHead>
+                        <TableHead className="text-[#1F2937]">Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {grades.map((grade) => (
+                        <TableRow key={grade.id} className="border-b border-[#E5E7EB]">
+                          <TableCell className="font-medium capitalize">{grade.subject}</TableCell>
+                          <TableCell className="font-semibold text-[#C9B88C]">{grade.score}%</TableCell>
+                          <TableCell className="max-w-md">{grade.feedback || "No feedback provided"}</TableCell>
+                          <TableCell className="text-[#1F2937] opacity-70">
+                            {new Date(grade.timestamp).toLocaleDateString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
