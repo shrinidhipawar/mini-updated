@@ -8,7 +8,7 @@ import LoginPage from "@/pages/login-page";
 import RegisterPage from "@/pages/register-page";
 import AdminRegisterPage from "@/pages/admin-register-page";
 import StudentDashboard from "@/pages/student-dashboard";
-import AdminDashboard from "@/pages/admin-dashboard";
+import AdminDashboard from "@/pages/new-admin-dashboard";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AuthProvider } from "@/hooks/use-auth";
 
