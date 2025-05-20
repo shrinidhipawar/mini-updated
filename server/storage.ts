@@ -27,7 +27,7 @@ export interface IStorage {
   createLog(log: InsertLog): Promise<Log>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any for session store type
 }
 
 export class MemStorage implements IStorage {
@@ -35,7 +35,7 @@ export class MemStorage implements IStorage {
   private submissions: Map<number, Submission>;
   private logs: Map<number, Log>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any for session store type
   currentUserId: number;
   currentSubmissionId: number;
   currentLogId: number;
@@ -123,10 +123,20 @@ export class MemStorage implements IStorage {
   async createLog(insertLog: InsertLog): Promise<Log> {
     const id = this.currentLogId++;
     const timestamp = new Date();
-    const log: Log = { ...insertLog, id, timestamp };
+    // Create a new object without spreading to avoid type issues
+    const log: Log = { 
+      id, 
+      userId: insertLog.userId,
+      type: insertLog.type,
+      data: insertLog.data === undefined ? null : insertLog.data,
+      timestamp
+    };
     this.logs.set(id, log);
     return log;
   }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./database-storage";
+
+// Use DatabaseStorage instead of MemStorage for persistence
+export const storage = new DatabaseStorage();
