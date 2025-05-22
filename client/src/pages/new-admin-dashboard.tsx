@@ -11,10 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, PieChart, BarChart, AlertCircle, Users } from "lucide-react";
+import { Loader2, PieChart, BarChart, AlertCircle, Users, Camera, Clipboard, Share2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import TestCaseCreator, { TestCase } from "@/components/TestCaseCreator";
 import { useToast } from "@/hooks/use-toast";
 
 interface SubmissionWithUser extends Submission {
@@ -128,8 +129,12 @@ export default function AdminDashboard() {
   // Get statistics
   const totalSubmissions = submissions.length;
   const totalLogs = logs.length;
-  const uniqueStudents = [...new Set(submissions.map(s => s.userId))].length;
+  // Fixed the Set iteration issue
+  const uniqueStudentIds = Array.from(new Set(submissions.map(s => s.userId)));
+  const uniqueStudents = uniqueStudentIds.length;
   const tabSwitchLogs = logs.filter(log => log.type === 'tab-switch').length;
+  const screenshotLogs = logs.filter(log => log.type === 'screenshot').length;
+  const screenShareLogs = logs.filter(log => log.type === 'screen-share').length;
   
   // Get score badge color
   const getScoreColor = (score: number) => {

@@ -58,6 +58,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Grade submission endpoint for admins
+  app.post("/api/admin/grade", isAuthenticated, checkRole("admin"), async (req, res) => {
+    try {
+      // Validate request body
+      const { submissionId, score, feedback } = req.body;
+      
+      if (typeof submissionId !== 'number' || typeof score !== 'number' || typeof feedback !== 'string') {
+        return res.status(400).json({ message: "Invalid grade data" });
+      }
+      
+      // In a real implementation, you would save this to a grades table
+      // For this demo, we'll just return success
+      console.log(`Grade submitted for submission ${submissionId}: score=${score}, feedback=${feedback}`);
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit grade" });
+    }
+  });
+  
+  // Get student grades by email (admin only)
+  app.get("/api/admin/grades/:email", isAuthenticated, checkRole("admin"), async (req, res) => {
+    try {
+      // In a real implementation, you would fetch from database
+      // For demo, return mock data
+      const studentEmail = req.params.email;
+      console.log(`Fetching grades for student: ${studentEmail}`);
+      
+      // This would normally come from database
+      res.json([
+        {
+          id: 1,
+          submissionId: 1,
+          userId: 1,
+          score: 85,
+          feedback: "Good solution but could be optimized further",
+          subject: "javascript",
+          timestamp: new Date().toISOString()
+        }
+      ]);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch grades" });
+    }
+  });
+  
+  // Get all active screen shares (admin only)
+  app.get("/api/admin/screen-shares", isAuthenticated, checkRole("admin"), async (req, res) => {
+    try {
+      // This would normally query a collection of active streams
+      // For demo, return information about how screen sharing works
+      res.json({
+        message: "Screen sharing implementation details",
+        note: "This system uses a screenshot-based approach rather than WebRTC",
+        details: [
+          "Screenshots are captured by html2canvas on client",
+          "Images are stored as base64 in the logs collection",
+          "They can be viewed from the admin logs section",
+          "For real-time WebRTC, you would need a media server like Janus or Kurento",
+          "Screenshots are deleted when the server restarts (they're in memory)"
+        ],
+        active_shares: []
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch screen shares" });
+    }
+  });
+  
+  // Get test case templates (admin only)
+  app.get("/api/admin/test-cases/:subject", isAuthenticated, checkRole("admin"), async (req, res) => {
+    try {
+      const subject = req.params.subject;
+      
+      // Default test cases for prime number challenge
+      const defaultTestCases = [
+        { id: "1", input: "7", expected: "true", description: "Check if 7 is prime" },
+        { id: "2", input: "4", expected: "false", description: "Check if 4 is prime" },
+        { id: "3", input: "13", expected: "true", description: "Check if 13 is prime" },
+        { id: "4", input: "1", expected: "false", description: "Check if 1 is prime" }
+      ];
+      
+      res.json(defaultTestCases);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch test cases" });
+    }
+  });
+  
+  // Save test cases (admin only)
+  app.post("/api/admin/test-cases/:subject", isAuthenticated, checkRole("admin"), async (req, res) => {
+    try {
+      const subject = req.params.subject;
+      const testCases = req.body.testCases;
+      
+      if (!Array.isArray(testCases)) {
+        return res.status(400).json({ message: "Invalid test cases format" });
+      }
+      
+      console.log(`Saving ${testCases.length} test cases for ${subject}`);
+      
+      // In a real implementation, you would save these to the database
+      res.status(200).json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save test cases" });
+    }
+  });
+  
   // Get all submissions (admin only)
   app.get("/api/submissions", isAuthenticated, checkRole("admin"), async (req, res) => {
     const submissions = await storage.getSubmissions();
