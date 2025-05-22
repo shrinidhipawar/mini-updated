@@ -48,6 +48,10 @@ export default function AdminDashboard() {
   const [userEmailSearch, setUserEmailSearch] = useState("");
   const [gradeScore, setGradeScore] = useState("90");
   const [gradeFeedback, setGradeFeedback] = useState("");
+  const [selectedTestSubject, setSelectedTestSubject] = useState("javascript");
+  const [isSavingTestCases, setIsSavingTestCases] = useState(false);
+  const [showTestCaseModal, setShowTestCaseModal] = useState(false);
+  const [initialTestCases, setInitialTestCases] = useState<TestCase[]>([]);
   
   const studentEmailRef = useRef<HTMLInputElement>(null);
   
@@ -258,12 +262,336 @@ export default function AdminDashboard() {
                 Live Monitoring
               </TabsTrigger>
               <TabsTrigger 
+                value="test-cases" 
+                className="rounded-lg px-4 py-2 data-[state=active]:bg-[#0F172A] data-[state=active]:text-white"
+              >
+                Test Cases
+              </TabsTrigger>
+              <TabsTrigger 
                 value="logs" 
                 className="rounded-lg px-4 py-2 data-[state=active]:bg-[#0F172A] data-[state=active]:text-white"
               >
                 Event Logs
               </TabsTrigger>
             </TabsList>
+            
+            {/* Test Cases Tab */}
+            <TabsContent value="test-cases">
+              <Card className="bg-white shadow-sm rounded-2xl border-[#E5E7EB]">
+                <CardHeader className="border-b border-[#E5E7EB] flex flex-row justify-between items-center">
+                  <CardTitle className="text-xl font-serif text-[#1F2937]">Create & Manage Test Cases</CardTitle>
+                  <div>
+                    <Select value={selectedTestSubject} onValueChange={setSelectedTestSubject}>
+                      <SelectTrigger className="w-[180px] border-[#E5E7EB] rounded-lg">
+                        <SelectValue placeholder="Select subject" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="javascript">JavaScript</SelectItem>
+                        <SelectItem value="python">Python</SelectItem>
+                        <SelectItem value="java">Java</SelectItem>
+                        <SelectItem value="cpp">C++</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="p-6">
+                  <div className="mb-6">
+                    <p className="text-[#1F2937] mb-4">
+                      Create and edit test cases for the {selectedTestSubject.charAt(0).toUpperCase() + selectedTestSubject.slice(1)} challenge. 
+                      These test cases will be used to evaluate student submissions automatically.
+                    </p>
+                    
+                    <Button 
+                      onClick={() => {
+                        // Fetch the current test cases for this subject
+                        fetch(`/api/admin/test-cases/${selectedTestSubject}`)
+                          .then(res => res.json())
+                          .then(data => {
+                            setInitialTestCases(data);
+                            setShowTestCaseModal(true);
+                          })
+                          .catch(err => {
+                            toast({
+                              title: "Error loading test cases",
+                              description: err.message,
+                              variant: "destructive"
+                            });
+                          });
+                      }}
+                      className="bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-lg"
+                    >
+                      Edit Test Cases
+                    </Button>
+                    
+                    {/* Test Case Creator Dialog */}
+                    <Dialog open={showTestCaseModal} onOpenChange={setShowTestCaseModal}>
+                      <DialogContent className="max-w-4xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-serif text-[#1F2937]">
+                            Test Case Editor - {selectedTestSubject.charAt(0).toUpperCase() + selectedTestSubject.slice(1)}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <TestCaseCreator 
+                          subject={selectedTestSubject}
+                          initialTestCases={initialTestCases}
+                          isSaving={isSavingTestCases}
+                          onSave={(testCases) => {
+                            setIsSavingTestCases(true);
+                            // Save test cases to API
+                            fetch(`/api/admin/test-cases/${selectedTestSubject}`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({ testCases }),
+                            })
+                              .then(response => response.json())
+                              .then(data => {
+                                if (data.success) {
+                                  toast({
+                                    title: "Test cases saved",
+                                    description: `Saved ${testCases.length} test cases for ${selectedTestSubject}`,
+                                  });
+                                  setShowTestCaseModal(false);
+                                } else {
+                                  throw new Error('Failed to save test cases');
+                                }
+                              })
+                              .catch(error => {
+                                toast({
+                                  title: "Error saving test cases",
+                                  description: error.message,
+                                  variant: "destructive"
+                                });
+                              })
+                              .finally(() => {
+                                setIsSavingTestCases(false);
+                              });
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-[#1F2937] mb-2">Current Challenge</h3>
+                    <div className="p-4 border border-[#E5E7EB] rounded-lg bg-[#F9F8F6]">
+                      <h4 className="font-medium text-[#1F2937]">Prime Number Challenge</h4>
+                      <p className="text-sm text-[#1F2937] mt-1">
+                        Create a function that checks if a number is prime. The function should return true if the number is prime and false otherwise.
+                      </p>
+                      <div className="mt-3 p-3 bg-white rounded border border-[#E5E7EB]">
+                        <pre className="text-xs font-mono">
+                          {`// Example in JavaScript:
+function isPrime(num) {
+  if (num <= 1) return false;
+  if (num <= 3) return true;
+  if (num % 2 === 0 || num % 3 === 0) return false;
+  
+  let i = 5;
+  while (i * i <= num) {
+    if (num % i === 0 || num % (i + 2) === 0) return false;
+    i += 6;
+  }
+  return true;
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* Monitoring tab */}
+            <TabsContent value="monitoring">
+              <Card className="bg-white shadow-sm rounded-2xl border-[#E5E7EB]">
+                <CardHeader className="border-b border-[#E5E7EB]">
+                  <CardTitle className="text-xl font-serif text-[#1F2937]">Student Activity Monitoring</CardTitle>
+                </CardHeader>
+                
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {/* Tab Switch Activity */}
+                    <Card className="bg-[#F9F8F6] shadow-sm rounded-2xl border-[#E5E7EB]">
+                      <CardContent className="p-6">
+                        <div className="flex items-center">
+                          <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                            <Clipboard className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-[#1F2937] opacity-70">Tab Switches</p>
+                            <h3 className="text-2xl font-bold text-[#1F2937]">{tabSwitchLogs}</h3>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-sm text-[#1F2937]">
+                          Detects when students switch tabs or applications during an assessment. 
+                          This may indicate attempts to search for solutions online.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Screenshot Activity */}
+                    <Card className="bg-[#F9F8F6] shadow-sm rounded-2xl border-[#E5E7EB]">
+                      <CardContent className="p-6">
+                        <div className="flex items-center">
+                          <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-4">
+                            <Camera className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-[#1F2937] opacity-70">Screenshots</p>
+                            <h3 className="text-2xl font-bold text-[#1F2937]">{screenshotLogs}</h3>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-sm text-[#1F2937]">
+                          Periodic screen captures stored in memory as base64 data. These show student 
+                          activities and can be viewed in the logs section.
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Screen Share Activity */}
+                    <Card className="bg-[#F9F8F6] shadow-sm rounded-2xl border-[#E5E7EB]">
+                      <CardContent className="p-6">
+                        <div className="flex items-center">
+                          <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-4">
+                            <Share2 className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-[#1F2937] opacity-70">Screen Shares</p>
+                            <h3 className="text-2xl font-bold text-[#1F2937]">{screenShareLogs}</h3>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-sm text-[#1F2937]">
+                          Screen sharing implementation via HTML2Canvas (not WebRTC). Images are 
+                          stored as base64 data in logs.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-[#1F2937] mb-4">Recent Student Activities</h3>
+                    
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-[#F9F8F6]">
+                          <TableHead className="text-[#1F2937]">Type</TableHead>
+                          <TableHead className="text-[#1F2937]">Student</TableHead>
+                          <TableHead className="text-[#1F2937]">Time</TableHead>
+                          <TableHead className="text-[#1F2937]">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {logs.slice(0, 10).map((log) => (
+                          <TableRow key={log.id} className="border-b border-[#E5E7EB]">
+                            <TableCell>
+                              <Badge className={`
+                                ${log.type === 'tab-switch' ? 'bg-orange-100 text-orange-800' : ''}
+                                ${log.type === 'screenshot' ? 'bg-blue-100 text-blue-800' : ''}
+                                ${log.type === 'screen-share' ? 'bg-green-100 text-green-800' : ''}
+                              `}>
+                                {log.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>Student {log.userId}</TableCell>
+                            <TableCell>{new Date(log.timestamp).toLocaleTimeString()}</TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => setSelectedLog(log)}
+                              >
+                                View
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {/* Log detail dialog */}
+                    <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
+                      <DialogContent className="max-w-4xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-serif text-[#1F2937]">
+                            Activity Details - {selectedLog?.type}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-medium text-[#1F2937]">Student ID</h4>
+                            <p className="text-[#1F2937]">{selectedLog?.userId}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-[#1F2937]">Timestamp</h4>
+                            <p className="text-[#1F2937]">
+                              {selectedLog?.timestamp ? new Date(selectedLog.timestamp).toLocaleString() : ''}
+                            </p>
+                          </div>
+                          {selectedLog?.type === 'screenshot' || selectedLog?.type === 'screen-share' ? (
+                            <div>
+                              <h4 className="font-medium text-[#1F2937]">Captured Image</h4>
+                              <div className="mt-2 border border-[#E5E7EB] rounded-lg p-2 bg-[#F9F8F6]">
+                                {selectedLog.data && (
+                                  <img 
+                                    src={selectedLog.data.startsWith('data:') ? selectedLog.data : `data:image/png;base64,${selectedLog.data}`} 
+                                    alt="Screen capture" 
+                                    className="max-w-full h-auto rounded"
+                                  />
+                                )}
+                              </div>
+                              <p className="mt-2 text-sm text-[#1F2937] opacity-70">
+                                Images are captured using HTML2Canvas and stored as base64 data.
+                                For a real WebRTC implementation, you would need a media server.
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <h4 className="font-medium text-[#1F2937]">Activity Data</h4>
+                              <pre className="mt-2 border border-[#E5E7EB] rounded-lg p-3 bg-[#F9F8F6] overflow-auto text-sm">
+                                {JSON.stringify(selectedLog, null, 2)}
+                              </pre>
+                            </div>
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-medium text-[#1F2937] mb-4">Anti-Cheat Implementation Details</h3>
+                    <div className="p-4 border border-[#E5E7EB] rounded-lg bg-[#F9F8F6]">
+                      <h4 className="font-medium text-[#1F2937]">System Overview</h4>
+                      <ul className="mt-2 space-y-2 text-[#1F2937]">
+                        <li className="flex items-start">
+                          <span className="text-green-600 mr-2">✓</span>
+                          <span>Tab detection monitors when students leave the assessment window</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-green-600 mr-2">✓</span>
+                          <span>Copy/paste prevention blocks students from copying external code</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-green-600 mr-2">✓</span>
+                          <span>Screen captures provide visual evidence of student activities</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-green-600 mr-2">✓</span>
+                          <span>Docker simulation provides a secure execution environment (note: not actually using Docker, just simulating it)</span>
+                        </li>
+                      </ul>
+                      <p className="mt-4 text-sm text-[#1F2937]">
+                        <strong>Note:</strong> This system does not use WebRTC for screen sharing but instead takes periodic screenshots
+                        using HTML2Canvas. These are stored in memory as base64 data and accessible through the logs section.
+                        In a production environment, these would be stored in a database or secure file storage.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
             
             {/* Submissions tab */}
             <TabsContent value="submissions">
