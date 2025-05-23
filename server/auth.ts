@@ -67,6 +67,25 @@ export function setupAuth(app: Express) {
       done(error);
     }
   });
+  app.post("/api/register", async (req, res) => {
+  try {
+    const { email, password, name, role } = req.body;
+    if (!email || !password || !role) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+    // Check if user already exists
+    const existingUser = await storage.getUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
+    }
+    // In a real app, hash the password here!
+    const user = await storage.createUser({ email, password, role });
+    res.status(201).json({ user });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
   // Login endpoint
   app.post("/api/login", (req, res, next) => {
