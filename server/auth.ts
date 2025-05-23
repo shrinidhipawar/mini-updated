@@ -69,8 +69,8 @@ export function setupAuth(app: Express) {
   });
   app.post("/api/register", async (req, res) => {
   try {
-    const { email, password, name, role } = req.body;
-    if (!email || !password || !role) {
+    const { email, password, name } = req.body;
+    if (!email || !password ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
     // Check if user already exists
