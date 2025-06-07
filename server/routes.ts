@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
+import { spinUpContainer, stopContainer } from "./container-manager";
 import { 
   insertSubmissionSchema,
   insertLogSchema 
@@ -235,6 +236,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const logs = await storage.getLogsByType(req.params.type);
     res.json(logs);
   });
+
+  // 🚀 Spin up a new container
+// ...existing code...
+// 🚀 Spin up a new container
+app.post("/api/container/spin-up", isAuthenticated, async (req, res) => {
+  const { language } = req.body;
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
+    }
+    // spinUpContainer will throw if the language is not supported
+    const { url, containerId } = await spinUpContainer(language, req.user.id);
+    res.json({ url, containerId });
+  } catch (error: any) {
+    console.error(error);
+    // 400 for unsupported language, 500 for other errors
+    if (error.message && error.message.startsWith("No Docker image defined")) {
+      res.status(400).json({ message: "Unsupported language" });
+    } else {
+      res.status(500).json({ message: error.message || "Failed to spin up container" });
+    }
+  }
+});
+
+// 🛑 Stop a running container
+app.post("/api/container/stop", isAuthenticated, async (req, res) => {
+  const { containerId } = req.body;
+  try {
+    await stopContainer(containerId);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to stop container" });
+  }
+});
 
   const httpServer = createServer(app);
   return httpServer;
