@@ -20,13 +20,13 @@ export default function Navbar() {
           
           <div className="flex items-center space-x-4">
             <Link href="/about">
-              <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-700/50">
+              <Button variant="ghost" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 hover:scale-105 transition-all">
                 <Info className="w-4 h-4 mr-2" />
                 About
               </Button>
             </Link>
             <Link href="/help">
-              <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-gray-700/50">
+              <Button variant="ghost" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 hover:scale-105 transition-all">
                 <HelpCircle className="w-4 h-4 mr-2" />
                 Help
               </Button>

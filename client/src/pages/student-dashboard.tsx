@@ -154,13 +154,13 @@ export default function StudentDashboard() {
               </h1>
               <p className="text-gray-400 mt-2 flex items-center gap-2">
                 <Code2 className="w-4 h-4" />
-                Welcome back, {user?.email}
+              Welcome back, {user?.email}
               </p>
             </div>
             <Button 
               onClick={() => logoutMutation.mutate()} 
               variant="outline"
-              className="text-gray-200 hover:text-white bg-gray-800 hover:bg-gray-700 border-gray-700 hover:border-gray-600 transition-all duration-300 flex items-center gap-2"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 hover:scale-105 transition-all"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -211,11 +211,11 @@ export default function StudentDashboard() {
                     <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-gray-200">
                       <SelectValue placeholder="Select Language" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem value="javascript" className="text-gray-200 hover:bg-gray-700">JavaScript</SelectItem>
-                      <SelectItem value="python" className="text-gray-200 hover:bg-gray-700">Python</SelectItem>
-                      <SelectItem value="java" className="text-gray-200 hover:bg-gray-700">Java</SelectItem>
-                      <SelectItem value="cpp" className="text-gray-200 hover:bg-gray-700">C++</SelectItem>
+                    <SelectContent className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-8 py-2 rounded-lg shadow-lg hover:shadow-blue-500/25 transition-all duration-300 border-white-700">
+                      <SelectItem value="javascript" className="text-gray-200 hover:bg-gray-700 hover:text-white">JavaScript</SelectItem>
+                      <SelectItem value="python" className="text-gray-200 hover:bg-gray-700 hover:text-white">Python</SelectItem>
+                      <SelectItem value="java" className="text-gray-200 hover:bg-gray-700 hover:text-white">Java</SelectItem>
+                      <SelectItem value="cpp" className="text-gray-200 hover:bg-gray-700 hover:text-white">C++</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

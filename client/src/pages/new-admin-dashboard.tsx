@@ -17,6 +17,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { Badge } from "@/components/ui/badge";
 import TestCaseCreator, { TestCase } from "@/components/TestCaseCreator";
 import { useToast } from "@/hooks/use-toast";
+import AdminQuestionForm from "@/pages/admin-question-form"
 
 
 interface SubmissionWithUser extends Submission {
@@ -50,82 +51,82 @@ interface ActivityLog {
   details?: string;
 }
 
-function AdminQuestionForm({ onQuestionCreated }: { onQuestionCreated: () => void }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [timeLimit, setTimeLimit] = useState(60);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+// function AdminQuestionForm({ onQuestionCreated }: { onQuestionCreated: () => void }) {
+//   const [title, setTitle] = useState("");
+//   const [description, setDescription] = useState("");
+//   const [timeLimit, setTimeLimit] = useState(60);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState("");
+//   const [success, setSuccess] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-    try {
-      const res = await fetch("/api/admin/questions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, timeLimit }),
-      });
-      if (!res.ok) throw new Error("Failed to create question");
-      setTitle("");
-      setDescription("");
-      setTimeLimit(60);
-      setSuccess("Question created!");
-      if (onQuestionCreated) onQuestionCreated();
-    } catch (err) {
-      setError("Failed to create question");
-    } finally {
-      setLoading(false);
-    }
-  };
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setLoading(true);
+//     setError("");
+//     setSuccess("");
+//     try {
+//       const res = await fetch("/api/admin/questions", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ title, description, timeLimit }),
+//       });
+//       if (!res.ok) throw new Error("Failed to create question");
+//       setTitle("");
+//       setDescription("");
+//       setTimeLimit(60);
+//       setSuccess("Question created!");
+//       if (onQuestionCreated) onQuestionCreated();
+//     } catch (err) {
+//       setError("Failed to create question");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-[#232946]/80 backdrop-blur-md rounded-xl shadow p-6 mb-8 max-w-2xl mx-auto flex flex-col gap-4 border border-gray-700"
-    >
-      <h3 className="text-xl font-bold mb-2 text-white">Create New Question</h3>
-      {error && <div className="text-red-400">{error}</div>}
-      {success && <div className="text-green-400">{success}</div>}
-      <input
-        className="border border-gray-700 bg-[#181c2a] text-white rounded px-3 py-2"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-      />
-      <textarea
-        className="border border-gray-700 bg-[#181c2a] text-white rounded px-3 py-2"
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        required
-        rows={3}
-      />
-      <div>
-        <label className="mr-2 font-medium text-white">Time Limit (minutes):</label>
-        <input
-          type="number"
-          min={1}
-          className="border border-gray-700 bg-[#181c2a] text-white rounded px-2 py-1 w-24"
-          value={timeLimit}
-          onChange={(e) => setTimeLimit(Number(e.target.value))}
-          required
-        />
-      </div>
-      <button
-        type="submit"
-        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-6 py-2 rounded-lg shadow hover:from-blue-700 hover:to-purple-700 transition-all"
-        disabled={loading}
-      >
-        {loading ? "Creating..." : "Create Question"}
-      </button>
-    </form>
-  );
-}
+//   return (
+//     <form
+//       onSubmit={handleSubmit}
+//       className="bg-[#232946]/80 backdrop-blur-md rounded-xl shadow p-6 mb-8 max-w-2xl mx-auto flex flex-col gap-4 border border-gray-700"
+//     >
+//       <h3 className="text-xl font-bold mb-2 text-white">Create New Question</h3>
+//       {error && <div className="text-red-400">{error}</div>}
+//       {success && <div className="text-green-400">{success}</div>}
+//       <input
+//         className="border border-gray-700 bg-[#181c2a] text-white rounded px-3 py-2"
+//         placeholder="Title"
+//         value={title}
+//         onChange={(e) => setTitle(e.target.value)}
+//         required
+//       />
+//       <textarea
+//         className="border border-gray-700 bg-[#181c2a] text-white rounded px-3 py-2"
+//         placeholder="Description"
+//         value={description}
+//         onChange={(e) => setDescription(e.target.value)}
+//         required
+//         rows={3}
+//       />
+//       <div>
+//         <label className="mr-2 font-medium text-white">Time Limit (minutes):</label>
+//         <input
+//           type="number"
+//           min={1}
+//           className="border border-gray-700 bg-[#181c2a] text-white rounded px-2 py-1 w-24"
+//           value={timeLimit}
+//           onChange={(e) => setTimeLimit(Number(e.target.value))}
+//           required
+//         />
+//       </div>
+//       <button
+//         type="submit"
+//         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-6 py-2 rounded-lg shadow hover:from-blue-700 hover:to-purple-700 transition-all"
+//         disabled={loading}
+//       >
+//         {loading ? "Creating..." : "Create Question"}
+//       </button>
+//     </form>
+//   );
+// }
 
 export default function AdminDashboard() {
   const { user, logoutMutation } = useAuth();
@@ -261,7 +262,7 @@ export default function AdminDashboard() {
                 variant="outline" 
                 onClick={() => logoutMutation.mutate()}
                 disabled={logoutMutation.isPending}
-                className="text-sm text-gray-300 hover:bg-gray-700/50 border-gray-700 rounded-lg transition-colors"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 hover:scale-105 transition-all"
               >
                 {logoutMutation.isPending ? "Logging out..." : "Logout"}
               </Button>
@@ -331,7 +332,45 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
-          
+
+          {/* <section className="min-h-screen py-10 px-2 sm:px-0 bg-gradient-to-br from-[#181c2a] via-[#232946] to-[#181c2a]">
+  {/* Section Header */}
+  {/* <header className="mb-6">
+    <h1 className="text-3xl font-bold text-white mb-1">Create a Question</h1>
+    <p className="text-gray-400">Design coding questions and manage their availability.</p>
+  </header>
+
+  {/* Create Question Form */}
+  {/* <AdminQuestionForm onQuestionCreated={() => {}} />
+</section>   */}
+  <header className="mb-6">
+    <h1 className="text-3xl font-bold text-white mb-1">Create a Question</h1>
+    <p className="text-gray-400">Design coding questions and manage their availability.</p>
+  </header>
+  
+
+<Dialog>
+  <DialogTrigger asChild>
+    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 hover:scale-105 transition-all">
+      Create a Question
+    </Button>
+  </DialogTrigger>
+
+  <DialogContent className="bg-[#232946] text-white border border-gray-700 shadow-lg">
+    <DialogHeader>
+      <DialogTitle className="text-2xl font-bold text-white mb-4">Create a New Question</DialogTitle>
+    </DialogHeader>
+    <AdminQuestionForm onQuestionCreated={() => {}} />
+  </DialogContent>
+</Dialog>
+
+
+
+<header className="mb-6">
+    <h1 className="text-3xl font-bold text-white mb-1">Manage students</h1>
+    <p className="text-gray-400">View submissions, logs and more.</p>
+  </header>
+
           <Tabs defaultValue="submissions" className="space-y-6">
             <TabsList className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 p-1 rounded-xl">
               <TabsTrigger 
@@ -682,16 +721,7 @@ function isPrime(num) {
             <TabsContent value="submissions">
               <div className="min-h-screen bg-gradient-to-br from-[#181c2a] via-[#232946] to-[#181c2a] py-10 px-2 sm:px-0">
                 <div className="max-w-5xl mx-auto">
-                  {/* Header */}
-                  <header className="mb-10">
-                    <h1 className="text-4xl font-extrabold text-white drop-shadow mb-2">Admin Dashboard</h1>
-                    <p className="text-gray-300">Create coding questions and review student submissions.</p>
-                  </header>
-
-                  {/* Create Question Form */}
-                  <section className="mb-12">
-                    <AdminQuestionForm onQuestionCreated={() => {}} />
-                  </section>
+                  
 
                   {/* Submissions Section */}
                   <section>
