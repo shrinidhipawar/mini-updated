@@ -238,38 +238,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // 🚀 Spin up a new container
-// ...existing code...
-// 🚀 Spin up a new container
-app.post("/api/container/spin-up", isAuthenticated, async (req, res) => {
-  const { language } = req.body;
-  try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: "Unauthorized: user not found" });
-    }
-    // spinUpContainer will throw if the language is not supported
-    const { url, containerId } = await spinUpContainer(language, req.user.id);
-    res.json({ url, containerId });
-  } catch (error: any) {
-    console.error(error);
-    // 400 for unsupported language, 500 for other errors
-    if (error.message && error.message.startsWith("No Docker image defined")) {
-      res.status(400).json({ message: "Unsupported language" });
-    } else {
-      res.status(500).json({ message: error.message || "Failed to spin up container" });
-    }
-  }
-});
+  app.post("/api/container/spin-up", isAuthenticated, async (req, res) => {
+    const { language } = req.body;
+    try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized: user not found" });
+      }
 
-// 🛑 Stop a running container
-app.post("/api/container/stop", isAuthenticated, async (req, res) => {
-  const { containerId } = req.body;
-  try {
-    await stopContainer(containerId);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to stop container" });
-  }
-});
+      if (!language) {
+        return res.status(400).json({ message: "Language is required" });
+      }
+
+      console.log(`Spinning up container for user ${req.user.id} with language ${language}`);
+      
+      // spinUpContainer will throw if the language is not supported
+      const { url, containerId } = await spinUpContainer(language, req.user.id);
+      
+      res.json({ url, containerId });
+    } catch (error) {
+      console.error("Failed to spin up container:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to spin up container"
+      });
+    }
+  });
+
+  // 🛑 Stop a running container
+  app.post("/api/container/stop", isAuthenticated, async (req, res) => {
+    const { containerId } = req.body;
+    try {
+      await stopContainer(containerId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to stop container" });
+    }
+  });
+
+  // POST /api/admin/questions (admin only)
+  app.post("/api/admin/questions", isAuthenticated, checkRole("admin"), async (req, res) => {
+    const { title, description, timeLimit } = req.body;
+    if (!title || !description || !timeLimit) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+    const question = await storage.createQuestion({ title, description, timeLimit: Number(timeLimit) });
+    res.status(201).json(question);
+  });
+
+  // GET /api/questions (students and admins)
+  app.get("/api/questions", isAuthenticated, async (req, res) => {
+    const question = await storage.getLatestQuestion();
+    if (!question) return res.status(404).json({ message: "No question found" });
+    res.json([question]);
+  });
 
   const httpServer = createServer(app);
   return httpServer;

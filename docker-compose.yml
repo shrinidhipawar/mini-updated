@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  python-env:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-python
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/home/coder/project
+    environment:
+      - DOCKER_USER=$USER
+
+  javascript-env:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-javascript
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/home/coder/project
+    environment:
+      - DOCKER_USER=$USER
+
+  java-env:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-java
+    ports:
+      - "8082:8080"
+    volumes:
+      - .:/home/coder/project
+    environment:
+      - DOCKER_USER=$USER
+
+  cpp-env:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile-cpp
+    ports:
+      - "8083:8080"
+    volumes:
+      - .:/home/coder/project
+    environment:
+      - DOCKER_USER=$USER 

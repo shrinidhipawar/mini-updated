@@ -32,4 +32,10 @@ export default defineConfig({
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
+  server: {
+    port: 5173,
+    proxy: {
+      "/api": "http://localhost:8080",
+    },
+  },
 });

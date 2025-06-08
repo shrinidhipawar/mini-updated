@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -72,14 +72,17 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-[#F9F8F6]">
-      <Card className="max-w-md w-full bg-white shadow-sm rounded-2xl">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <Card className="max-w-md w-full bg-gray-800/50 backdrop-blur-sm shadow-2xl rounded-2xl border border-gray-700/50">
         <CardContent className="p-8 space-y-6">
           <div>
-            <h2 className="mt-2 text-center text-3xl font-serif font-medium text-[#1F2937]">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+              <UserPlus className="h-6 w-6 text-white" />
+            </div>
+            <h2 className="text-center text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
               Create Account
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-gray-400">
               Register to access the coding lab environment
             </p>
           </div>
@@ -91,11 +94,11 @@ export default function RegisterPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[#1F2937]">Name</FormLabel>
+                    <FormLabel className="text-gray-300">Name</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="Enter your name" 
-                        className="border-[#E5E7EB] focus:border-[#C9B88C] rounded-lg"
+                        className="bg-gray-800 border-gray-700 text-gray-200 placeholder:text-gray-500 focus:border-blue-500 rounded-lg"
                         {...field} 
                       />
                     </FormControl>
@@ -109,12 +112,12 @@ export default function RegisterPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[#1F2937]">Email</FormLabel>
+                    <FormLabel className="text-gray-300">Email</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="Enter your email" 
                         autoComplete="email" 
-                        className="border-[#E5E7EB] focus:border-[#C9B88C] rounded-lg"
+                        className="bg-gray-800 border-gray-700 text-gray-200 placeholder:text-gray-500 focus:border-blue-500 rounded-lg"
                         {...field} 
                       />
                     </FormControl>
@@ -128,13 +131,13 @@ export default function RegisterPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[#1F2937]">Password</FormLabel>
+                    <FormLabel className="text-gray-300">Password</FormLabel>
                     <FormControl>
                       <Input 
                         type="password" 
                         placeholder="Enter your password" 
                         autoComplete="new-password" 
-                        className="border-[#E5E7EB] focus:border-[#C9B88C] rounded-lg"
+                        className="bg-gray-800 border-gray-700 text-gray-200 placeholder:text-gray-500 focus:border-blue-500 rounded-lg"
                         {...field} 
                       />
                     </FormControl>
@@ -145,7 +148,7 @@ export default function RegisterPage() {
               
               <Button 
                 type="submit" 
-                className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-lg py-2 font-medium mt-6" 
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg py-2 font-medium mt-6 shadow-lg hover:shadow-blue-500/25 transition-all duration-300" 
                 disabled={registerMutation.isPending}
               >
                 {registerMutation.isPending ? (
@@ -159,9 +162,9 @@ export default function RegisterPage() {
               </Button>
               
               <div className="text-center text-sm mt-4">
-                <p className="text-gray-600">
+                <p className="text-gray-400">
                   Already have an account?{" "}
-                  <Link href="/login" className="text-[#0F172A] hover:underline font-medium">
+                  <Link href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
                     Sign in
                   </Link>
                 </p>

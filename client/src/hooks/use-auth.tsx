@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       localStorage.removeItem("token");
       queryClient.setQueryData(["/api/user"], null);
-      setLocation("/login");
+      setLocation("/");
       
       toast({
         title: "Logged out successfully",

@@ -6,9 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Loader2, LockIcon } from "lucide-react";
+import { Loader2, LockIcon, Code2, Shield, Zap, LogIn } from "lucide-react";
 import { useEffect } from "react";
 import { useLocation, Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
+import Navbar from "@/components/navbar";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -16,7 +20,7 @@ const loginSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { user, loginMutation } = useAuth();
+  const { user, loginMutation, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -29,37 +33,50 @@ export default function LoginPage() {
   
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (!isLoading && user) {
       if (user.role === "admin") {
         setLocation("/admin/dashboard");
       } else {
         setLocation("/student/dashboard");
       }
     }
-  }, [user, setLocation]);
+  }, [user, isLoading, setLocation]);
   
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   function onSubmit(values: z.infer<typeof loginSchema>) {
     loginMutation.mutate(values);
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Login form column */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 md:w-1/2 bg-[#F9F8F6]">
-        <Card className="max-w-md w-full bg-white shadow-sm rounded-2xl border-[#E5E7EB]">
-          <CardHeader className="pb-2 text-center">
-            <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-[#0F172A] flex items-center justify-center">
-              <LockIcon className="h-6 w-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <Navbar />
+      
+      <div className="flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8">
+        <Card className="max-w-md w-full bg-gray-800/50 backdrop-blur-sm shadow-2xl rounded-2xl border border-gray-700/50">
+          <CardContent className="p-8 space-y-6">
+            <div>
+              <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
+                <LogIn className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-center text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
+                Welcome Back
+              </h2>
+              <p className="mt-2 text-center text-sm text-gray-400">
+                Sign in to your account to continue
+              </p>
             </div>
-            <CardTitle className="text-2xl font-serif text-[#1F2937]">
-              Welcome Back
-            </CardTitle>
-            <p className="text-sm text-[#1F2937] opacity-70 mt-1">
-              Sign in to access the College Coding Lab
-            </p>
-          </CardHeader>
-          
-          <CardContent className="pt-4 px-8">
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -67,12 +84,12 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#1F2937]">Email</FormLabel>
+                      <FormLabel className="text-gray-300">Email</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="Enter your email" 
-                          autoComplete="email"
-                          className="border-[#E5E7EB] focus:border-[#C9B88C] rounded-lg"
+                          autoComplete="email" 
+                          className="bg-gray-800 border-gray-700 text-gray-200 placeholder:text-gray-500 focus:border-purple-500 rounded-lg"
                           {...field} 
                         />
                       </FormControl>
@@ -86,13 +103,13 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#1F2937]">Password</FormLabel>
+                      <FormLabel className="text-gray-300">Password</FormLabel>
                       <FormControl>
                         <Input 
                           type="password" 
                           placeholder="Enter your password" 
-                          autoComplete="current-password"
-                          className="border-[#E5E7EB] focus:border-[#C9B88C] rounded-lg"
+                          autoComplete="current-password" 
+                          className="bg-gray-800 border-gray-700 text-gray-200 placeholder:text-gray-500 focus:border-purple-500 rounded-lg"
                           {...field} 
                         />
                       </FormControl>
@@ -103,7 +120,7 @@ export default function LoginPage() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full mt-6 bg-[#0F172A] hover:bg-[#1E293B] text-white rounded-lg py-2 font-medium" 
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg py-2 font-medium mt-6 shadow-lg hover:shadow-purple-500/25 transition-all duration-300" 
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
@@ -112,78 +129,22 @@ export default function LoginPage() {
                       Signing in...
                     </>
                   ) : (
-                    "Sign in"
+                    "Sign In"
                   )}
                 </Button>
+                
+                <div className="text-center text-sm mt-4">
+                  <p className="text-gray-400">
+                    Don't have an account?{" "}
+                    <Link href="/register" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+                      Sign up
+                    </Link>
+                  </p>
+                </div>
               </form>
             </Form>
-            
-            <div className="mt-6 flex items-center justify-between">
-              <div className="flex-grow border-t border-[#E5E7EB]"></div>
-              <div className="mx-3 text-xs text-[#1F2937] opacity-60">or</div>
-              <div className="flex-grow border-t border-[#E5E7EB]"></div>
-            </div>
-            
-            <div className="mt-6 text-center text-sm">
-              <p className="text-[#1F2937]">
-                Don't have an account?{" "}
-              </p>
-              <div className="flex justify-center space-x-4 mt-2">
-                <Link href="/register" className="text-[#0F172A] hover:underline font-medium">
-                  Student Sign up
-                </Link>
-                <span className="text-[#E5E7EB]">|</span>
-                <Link href="/admin/register" className="text-[#8C977A] hover:underline font-medium">
-                  Admin Sign up
-                </Link>
-              </div>
-            </div>
           </CardContent>
-          
-          <CardFooter className="px-8 pb-8 pt-0">
-            <div className="w-full text-center">
-              <p className="mb-2 text-xs font-medium text-[#C9B88C]">
-                Demo Credentials:
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-xs text-[#1F2937]">
-                <div className="bg-[#F9F8F6] p-2 rounded-lg">
-                  <p className="font-medium">Student</p>
-                  <p className="opacity-70">student@lab.com</p>
-                  <p className="opacity-70">student123</p>
-                </div>
-                <div className="bg-[#F9F8F6] p-2 rounded-lg">
-                  <p className="font-medium">Admin</p>
-                  <p className="opacity-70">admin@lab.com</p>
-                  <p className="opacity-70">admin123</p>
-                </div>
-              </div>
-            </div>
-          </CardFooter>
         </Card>
-      </div>
-      
-      {/* Hero column - visible on md screens and larger */}
-      <div className="hidden md:flex md:w-1/2 bg-[#0F172A] flex-col justify-center items-center px-8 py-12">
-        <div className="max-w-md text-center">
-          <h1 className="text-4xl font-serif font-bold text-white mb-6">College Coding Lab</h1>
-          <p className="text-lg text-slate-300 mb-8">
-            An advanced platform for coding exercises, anti-cheating monitoring, and performance tracking.
-          </p>
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="bg-[#1E293B] p-4 rounded-xl">
-              <p className="text-2xl font-bold text-[#C9B88C] mb-1">Real-time</p>
-              <p className="text-sm text-slate-400">Code editing & testing</p>
-            </div>
-            <div className="bg-[#1E293B] p-4 rounded-xl">
-              <p className="text-2xl font-bold text-[#C9B88C] mb-1">Secure</p>
-              <p className="text-sm text-slate-400">Anti-cheating monitoring</p>
-            </div>
-            <div className="bg-[#1E293B] p-4 rounded-xl">
-              <p className="text-2xl font-bold text-[#C9B88C] mb-1">Instant</p>
-              <p className="text-sm text-slate-400">Feedback & grading</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
 import { 
   users, type User, type InsertUser,
   submissions, type Submission, type InsertSubmission,
-  logs, type Log, type InsertLog
+  logs, type Log, type InsertLog,
+  questions, type Question, type InsertQuestion
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { IStorage } from "./storage";
 
 const PostgresSessionStore = connectPg(session);
@@ -67,5 +68,15 @@ export class DatabaseStorage implements IStorage {
   async createLog(insertLog: InsertLog): Promise<Log> {
     const [log] = await db.insert(logs).values(insertLog).returning();
     return log;
+  }
+
+  async createQuestion(question: Omit<Question, "id" | "createdAt">): Promise<Question> {
+    const [q] = await db.insert(questions).values(question).returning();
+    return q;
+  }
+
+  async getLatestQuestion(): Promise<Question | undefined> {
+    const result = await db.select().from(questions).orderBy(desc(questions.createdAt)).limit(1);
+    return result[0];
   }
 }

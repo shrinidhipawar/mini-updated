@@ -1,7 +1,8 @@
 import { 
   users, type User, type InsertUser,
   submissions, type Submission, type InsertSubmission,
-  logs, type Log, type InsertLog
+  logs, type Log, type InsertLog,
+  type Question
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -39,6 +40,8 @@ export class MemStorage implements IStorage {
   currentUserId: number;
   currentSubmissionId: number;
   currentLogId: number;
+  private questions: Map<number, Question> = new Map();
+  private currentQuestionId: number = 1;
 
   constructor() {
     this.users = new Map();
@@ -133,6 +136,14 @@ export class MemStorage implements IStorage {
     };
     this.logs.set(id, log);
     return log;
+  }
+
+  async createQuestion(question: { title: string; description: string; timeLimit: number }) {
+    // Insert into questions table
+  }
+
+  async getLatestQuestion() {
+    // Fetch the latest question from questions table
   }
 }
 
